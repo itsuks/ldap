@@ -1,0 +1,7 @@
+Configure SSH authentication for ldap users:
+=============================================
+
+1. Configure SSH authnetication by configuring the common-password, common-auth and common-session files with ldap.
+--------------------------------------------------------------------------------------------------------------------
+
+

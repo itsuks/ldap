@@ -1,0 +1,50 @@
+Configure LDAP Client:
+======================================================
+
+1. Install all the required openldap client and dependent packages:
+     yum install authconfig openldap-clients nss-pam-ldapd -y
+     
+2. a) Configuring the client system to use an LDAP directory for user authentication:
+        authconfig-tui
+   
+   b) In the Authentication Configuration screen, select:
+      Use LDAP → Under the User Information section
+      Use LDAP Authentication → Under the Authentication section
+   
+      Navigate to the Next button and press ENTER to select it.
+   
+   c) Use the following information to complete the fields under LDAP Settings screen:
+      Server: ldap://10.0.50.7/
+      Base DN: dc=celerispay,dc=com
+      
+      Click OK.
+      
+   d) To verify the above entries, check /etc/openldap/ldap.conf file.
+   
+3. Configure oddjob-mkhomedir to auto create home directories, modify PAM configuration to use pam_oddjob_mkhomedir by adding the following lines to /etc/pam.d/system-auth:
+     session required pam_mkhomedir.so
+     
+     To create home dir on first login via ssh (if the home dir does not exist), add the following line to /etc/pam.d/sshd:
+     session required pam_mkhomedir.so
+   
+
+----------------------------------------------------------------------------------------------------------------------------------------------
+
+For allowing sudo users on client mmachine:
+Add the user to wheel group:
+  usermod -aG wheel username
+  
+----------------------------------------------------------------------------------------------------------------------------------------------
+
+On the client machine, make changes to sudoers file (visudo):
+
+comment the following line   →  %wheel ALL=(ALL)       ALL
+and uncomment the following line   →   %wheel ALL=(ALL)       NOPASSWD: ALL
+   
+----------------------------------------------------------------------------------------------------------------------------------------------
+
+Try connecting via LDAP using a LDAP user credentials:
+su - username
+
+
+

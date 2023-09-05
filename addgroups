@@ -1,0 +1,11 @@
+dn: cn=superusers,ou=users,dc=celerispay,dc=com
+objectClass: posixGroup
+cn: superusers
+gidNumber: 2000
+memberUid: superusers
+
+dn: cn=monitoring,ou=users,dc=celerispay,dc=com
+objectClass: posixGroup
+cn: monitoring
+gidNumber: 3000
+memberUid: monitoring

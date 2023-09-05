@@ -1,0 +1,161 @@
+Install and Configure LDAP Server:
+=========================================================================
+
+1. Install all the required openldap server and openldap client packages: 
+     yum -y install openldap-clients openldap-servers
+  
+2. Start and enable the slapd service:
+     systemctl start slapd
+     systemctl enable slapd
+   
+3. Configure the admin account:
+      
+   a) Modify base dn and admin user by creating a new file updaterootconfig.ldif
+      
+      Create and add the following contents to file updaterootconfig.ldif
+      --------------------------------------------------------
+        dn: olcDatabase={2}hdb,cn=config
+        changetype: modify
+	replace: olcSuffix
+	olcSuffix: dc=celerispay,dc=com     → For base dn
+
+	dn: olcDatabase={2}hdb,cn=config
+	changetype: modify
+	replace: olcRootDN
+	olcRootDN: cn=admin,dc=celerispay,dc=com    → For admin user
+	
+      Execute the following command to add:
+        ldapmodify -Y EXTERNAL -H ldapi:/// -f updaterootconfig.ldif
+
+   b) Generate a hash password for the admin user:
+        slappasswd -s 'adminpassword'
+      
+      Modify the root password creating a new file updaterootpassword.ldif
+      
+      Create and add the following contents to file updaterootpassword.ldif
+      ----------------------------------------------------------
+        dn: olcDatabase={2}hdb,cn=config
+	changeType: modify
+	add: olcRootPW
+	olcRootPW: {SSHA}xxxxxxxxxxxxxxxxxxxxxxxxxx   →  Copy the generated has password for admin.
+	
+     Execute the following command to add:
+        ldapmodify -Y EXTERNAL -H ldapi:/// -f updaterootpassword.ldif
+        
+    c) Update the admin dn in olcDatabase={1}monitor.ldif by creating a new file updatemonitor.ldif and modifying.
+   
+      Create and add the following contents to file updatemonitor.ldif
+      ----------------------------------------------------------------
+	dn: olcDatabase={1}monitor,cn=config
+	changetype: modify
+	replace: olcAccess
+	olcAccess: {0}to * by dn.base="gidNumber=0+uidNumber=0,cn=peercred,cn=external, cn=auth" read by dn.base="cn=admin,dc=celerispay,dc=com" read by * none
+ 
+      Execute the following command to add:
+      ldapmodify -Y EXTERNAL -H ldapi:/// -f updatemonitor.ldif
+        
+
+4. Adding Objects:
+
+    a) Add organisation:
+       
+       Create file addorg.ldif with following content:
+       -----------------------------------------------
+        dn: dc=example,dc=com
+	objectClass: dcObject
+	objectClass: organization
+	dc: example
+	o: example
+       
+       Execute the following command to add:
+         ldapadd -D cn=admin,dc=celerispay,dc=com -w adminpassword -f addorg.ldif
+         
+    
+    b) Add organisation-units:
+    
+       Create file addou.ldif with following content:
+       ----------------------------------------------
+        dn: ou=users,dc=celerispay,dc=com
+	objectClass: organizationalUnit
+	ou: users
+	
+	Execute the following command to add:
+         ldapadd -D cn=admin,dc=celerispay,dc=com -w adminpassword -f addou.ldif
+         
+    
+    c) Add groups superusers and monitoring :
+    
+       Create file addgroups.ldif with following content:
+       ----------------------------------------------
+        dn: cn=superusers,ou=users,dc=celerispay,dc=com
+	objectClass: posixGroup
+	cn: superusers
+	gidNumber: 2000
+	memberUid: superusers
+
+	dn: cn=monitoring,ou=users,dc=celerispay,dc=com
+	objectClass: posixGroup
+	cn: monitoring
+	gidNumber: 3000
+	memberUid: monitoring
+	
+	Execute the following command to add:
+         ldapadd -D cn=admin,dc=celerispay,dc=com -w adminpassword -f addgroups.ldif
+         
+    
+    d) Add users in groups:
+    
+       Generate a hash password for the users:
+        slappasswd -s 'demopassword'            → hash password for demo user
+        slappasswd -s 'sudouserpassword'        → hash password for sudouser
+    
+       Create file addusers.ldif with following content:
+       -------------------------------------------------
+	dn: uid=demo,cn=monitoring,ou=users,dc=celerispay,dc=com
+	objectClass: inetOrgPerson
+	objectClass: posixAccount
+	objectClass: shadowAccount
+	cn: demo
+	sn: Wiz
+	userPassword: {SSHA}xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx        →  Copy the generated has password for demo user.
+	loginShell: /bin/bash
+	uidNumber: 3001
+	gidNumber: 3000
+	homeDirectory: /home/demo
+	
+	dn: uid=sudouser,cn=superusers,ou=users,dc=celerispay,dc=com
+	objectClass: top
+	objectClass: posixAccount
+	objectClass: shadowAccount
+	objectClass: sudoRole
+	cn: sudouser
+	uid: sudouser
+	uidNumber: 2001
+	gidNumber: 2000
+	homeDirectory: /home/sudouser
+	loginShell: /bin/bash
+	userPassword: {SSHA}xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx        →  Copy the generated has password for sudouser. 
+	shadowLastChange: 0
+	sudoUser: ALL=(ALL) ALL
+	
+	
+	Execute the following command to add:
+         ldapadd -D cn=admin,dc=celerispay,dc=com -w adminpassword -f addusers.ldif
+         
+        
+        **********************************************************************************************************************
+        If getting error while adding objects to ldap, add the following schemas first from the /etc/openldap/schema directory:
+        
+        1) Add the cosine.ldif:
+            ldapadd -Y EXTERNAL -H ldapi:// -f /etc/openldap/schema/cosine.ldif
+            
+        2) Add the inetorgperson.ldif
+            ldapadd -Y EXTERNAL -H ldapi:// -f /etc/openldap/schema/inetorgperson.ldif
+            
+        3) Add the nis.ldif:
+            ldapadd -Y EXTERNAL -H ldapi:// -f /etc/openldap/schema/nis.ldif
+            
+            Objects can now be added.
+       ***********************************************************************************************************************
+
+   

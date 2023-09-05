@@ -1,0 +1,7 @@
+dn: olcOverlay=ppolicy,olcDatabase={2}hdb,cn=config
+objectClass: olcOverlayConfig
+objectClass: olcPpolicyConfig
+olcOverlay: ppolicy
+olcPPolicyDefault: cn=ppolicy,ou=pwdpolicies,dc=celerispay,dc=com
+olcPPolicyUseLockout: FALSE
+olcPPolicyHashCleartext: TRUE

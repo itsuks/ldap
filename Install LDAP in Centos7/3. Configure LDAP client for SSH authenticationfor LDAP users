@@ -1,0 +1,80 @@
+To configure SSH authnetication for LDAP users, we need to configure the nslcd.conf and pam.d files.
+=====================================================================================================
+
+1. Configure nslcd.service with ldap: (installed nss-pam-ldapd)
+   -------------------------------------------------------------
+   The nss-pam-ldapd package allows LDAP directory servers to be used as a primary source of name service information.
+   Edit the /etc/nslcd.conf file and add the LDAP server details:
+   
+        uri ldap://ldap_server_ip/
+        base dc=celerispay,dc=com      → Add the name of your dn
+
+
+2. Configure SSH authnetication by configuring the password-auth and system-auth files with ldap.
+
+    I) Edit the /etc/pam.d/password-auth file and add the following lines:
+       (added lines need to be at same places as below)
+       --------------------------------------------------------------------
+   
+	auth        required      pam_env.so
+	auth        sufficient    pam_unix.so nullok try_first_pass
+	auth        requisite     pam_succeed_if.so uid >= 1000 quiet_success
+	auth        sufficient    pam_ldap.so use_first_pass                                      → line added
+	auth        required      pam_deny.so
+	
+	account     required      pam_unix.so broken_shadow
+	account     sufficient    pam_localuser.so
+	account     sufficient    pam_succeed_if.so uid < 1000 quiet
+	account     [default=bad success=ok user_unknown=ignore] pam_ldap.so                      → line added
+	account     required      pam_permit.so
+	
+	password    requisite     pam_pwquality.so try_first_pass retry=3 type=
+	password    sufficient    pam_unix.so sha512 shadow nullok try_first_pass use_authtok
+	password    sufficient    pam_ldap.so use_authtok                                         → line added
+	password    required      pam_deny.so
+	
+	session     optional      pam_keyinit.so revoke
+	session     required      pam_limits.so
+	-session     optional      pam_systemd.so
+	session     [success=1 default=ignore] pam_succeed_if.so service in crond quiet use_uid
+	session     required      pam_unix.so
+	session     optional      pam_ldap.so                                                     → line added
+	
+	************************** No need to add if it is already there *******************************
+	
+	
+	
+    II) Edit the /etc/pam.d/system-auth file and add the following lines:
+        (added lines need to be at same places as below)
+        ------------------------------------------------------------------
+   
+	auth        required      pam_env.so
+	auth        sufficient    pam_unix.so nullok try_first_pass
+	auth        requisite     pam_succeed_if.so uid >= 1000 quiet_success
+	auth        sufficient    pam_ldap.so use_first_pass                                      → line added
+	auth        required      pam_deny.so
+
+	account     required      pam_unix.so broken_shadow
+	account     sufficient    pam_localuser.so
+	account     sufficient    pam_succeed_if.so uid < 1000 quiet
+	account     [default=bad success=ok user_unknown=ignore] pam_ldap.so                      → line added
+	account     required      pam_permit.so
+
+	password    requisite     pam_pwquality.so try_first_pass retry=3 type=
+	password    sufficient    pam_unix.so sha512 shadow nullok try_first_pass use_authtok
+	password    sufficient    pam_ldap.so use_authtok                                         → line added
+	password    required      pam_deny.so
+
+	session     optional      pam_keyinit.so revoke
+	session     required      pam_limits.so
+	-session     optional      pam_systemd.so
+	session     [success=1 default=ignore] pam_succeed_if.so service in crond quiet use_uid
+	session     required      pam_unix.so
+	session     optional      pam_ldap.so                                                     → line added
+	
+	************************** No need to add if it is already there *******************************
+	
+	
+	           -------------------------------------------------------------------
+                   | Try authenticating to client server using LDAP user credentials |
+                   -------------------------------------------------------------------

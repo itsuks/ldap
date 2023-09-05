@@ -1,0 +1,44 @@
+Host ntp
+Hostname 10.0.20.4
+User swapnil
+
+Host api-0
+Hostname 10.0.20.10
+User swapnil
+
+Host app
+Hostname 10.0.20.20
+User swapnil
+
+Host cvdbm-0
+Hostname 10.0.40.20
+User swapnil
+
+Host ldap
+Hostname 10.0.50.7
+User swapnil
+
+Host mdb-0
+Hostname 10.0.30.10
+User swpanil
+
+Host pay-0
+Hostname 10.0.20.30
+User swapnil
+
+Host pg
+Hostname 10.0.30.30
+User swapnil
+
+Host rmq
+Hostname 10.0.20.40
+User swapnil
+
+Host consul
+Hostname 10.0.50.4
+User swapnil
+
+Host test-server-1
+Hostname 10.0.20.7
+User swapnil
+

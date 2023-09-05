@@ -1,0 +1,5 @@
+dn: dc=celerispay,dc=com
+objectClass: dcObject
+objectClass: organization
+dc: celerispay
+o: celerispay

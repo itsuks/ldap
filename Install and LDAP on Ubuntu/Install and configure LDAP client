@@ -1,0 +1,47 @@
+Install and configure ldap client:
+===================================
+
+1. Install the ldap client and necessary dependencies:
+   ---------------------------------------------------
+    apt -y install libnss-ldapd libpam-ldapd ldap-utils nscd
+    
+   Configure the settings:
+   -----------------------
+   I)   Add the LDAP server url:
+        ldap://10.0.50.7/ 
+       
+   II)  Specify the suffix:
+        dc=celerispay,dc=com
+  
+   III) Select services that should have LDAP lookups enabled. Enable the following services:
+        
+        passwd
+        group
+        shadow   
+
+
+2. Edit the pam.d files and add the following lines to the /etc/pam.d/common-session:
+   -----------------------------------------------------------------------------------
+   session optional        pam_mkhomedir.so skel=/etc/skel umask=077
+   
+
+3. Restart the nscd service:
+   ---------------------------
+   systemctl restart nscd.service
+   
+
+4. Verify connection with the ldap server by checking the ldap user accounts:
+   ---------------------------------------------------------------------------
+   getent passwd ldap-username
+   
+   (If output is recieved is ldap user details, then connection is established)
+   
+
+5. Try logging in with the ldap user with following command:
+   ----------------------------------------------------------
+   sudo login
+   
+   This prompts for user name, so provide the ldap username and hit enter.
+   Now again a prompt will appear for password, so provide the ldap user's password and hot enter.
+   Now, you should be logged in to the system as ldap user.
+   

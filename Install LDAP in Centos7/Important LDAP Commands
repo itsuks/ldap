@@ -1,0 +1,15 @@
+Important Ldap Commands:
+========================
+
+1. Add ldif file:
+   ldapadd -x -D cn=admin,dc=celerispay,dc=com -w adminpassword -f file.ldif
+   ldapadd -Y EXTERNAL -H ldap:/// -f file.ldif
+   
+2. To list ldap databases:
+   ldapsearch -LLL -Y EXTERNAL -H ldapi:/// -b  cn=config olcDatabase -Q | grep olcDatabase:
+
+3. To right password run the whoami to display details:
+   ldapwhoami -x -w "password" -D uid=xyz,cn=superusers,ou=users,dc=celerispay,dc=com -ZZ -H ldapi:///
+        If details are provided as output, password is correct.
+        
+  

@@ -1,0 +1,15 @@
+Make changes in user/group entry:
+===================================
+
+ Create a file: modifyobjects.ldif and add the following content:
+ ------------------------------------------------------------
+    dn: full-domain-of-the-user-or-group
+    changetype: modify
+    replace/add/delete: any-attribute
+    same-attribute: value-for-the-attribute
+    
+ Then, execute the modify command on the server:
+ -----------------------------------------------
+    ldapmodify -x -a -H ldap://localhost -D cn=admin,dc=celerispay,dc=com -w admin@ldap -f modifyobjects.ldif
+    
+

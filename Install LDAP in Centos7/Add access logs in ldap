@@ -1,0 +1,23 @@
+acclesslog: Bind, unbind, read, write, changes are recorded here in the log.
+
+
+Enable the accesslog and auditlog in ldap:
+==========================================
+
+1. Add the following lines to your configuration file to enable the accesslog and auditlog overlays: For slapd.d
+   Crete a file add-access-audit-log.ldif and add the following lines:
+   
+	dn: cn=module{0},cn=config
+	changetype: modify
+	add: olcModuleLoad
+	olcModuleLoad: accesslog
+	-
+	add: olcModuleLoad
+	olcModuleLoad: auditlog
+
+   Add the ffile to the config:
+ 
+ 	ldapadd -Y EXTERNAL -H ldapi:/// -f add-access-audit-log.ldif
+ 
+ 
+

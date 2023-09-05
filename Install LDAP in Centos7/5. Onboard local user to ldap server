@@ -1,0 +1,34 @@
+Onboard local users to ldap server:
+==============================================
+
+1) Create local user/users (If user does not exist):
+    useradd username
+    
+   Set the password for the created users:
+    echo "password" | passwd --stdin username
+    
+2) Install the migrationtools package for migration of local users to LDAP:
+    yum -y install migrationtools
+    
+3) Export the created users and groups to the file:
+    grep "username" /etc/passwd > /root/users
+    grep "username" /etc/group > /root/groups
+    
+4) Setup MigrationTools:
+    Edit “/usr/share/migrationtools/migrate_common.ph” and update it with the domain details
+      $DEFAULT_MAIL_DOMAIN = "celerispay.com";
+      $DEFAULT_BASE = "dc=celerispay,dc=com";
+      
+    Change this to 1 to support more general object classes such as person.
+      $EXTENDED_SCHEMA = 1;
+
+5) Convert users and groups in ldif:
+    /usr/share/migrationtools/migrate_passwd.pl /root/users /root/users.ldif
+    /usr/share/migrationtools/migrate_group.pl /root/groups /root/groups.ldif
+     
+6) Import the users and groups to LDAP database:
+    ldapadd -x -W -D "cn=admin,dc=celerispay,dc=com" -f /root/users.ldif
+     
+7) Run the following command to search for a user “USERNAME” in LDAP:
+    ldapsearch -x cn=username -b dc=celerispay,dc=com   
+
