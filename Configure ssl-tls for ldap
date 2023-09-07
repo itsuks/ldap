@@ -1,0 +1,137 @@
+Configure the ssl/tls for LDAP server:
+======================================
+1. touch index.txt
+   echo 01 > serial
+   
+2. Create a privatye key for CA certificate:
+   -----------------------------------------
+	openssl genrsa -out ca.key 4096
+
+3. Generate CA certificate:
+   -------------------------
+	openssl req -new -x509 -days 365 -key ca.key -out ca.cert.pem
+
+4. Configure openssl x509 extension to create SAN certificate:
+   -----------------------------------------------------------
+	
+	I) Generate a SAN certificate for ldap sever:
+	------------------------------------------
+ 	Create a new file server_cert_ext.cnf and add the following lines:
+ 	
+ 	[v3_ca]
+	basicConstraints = CA:FALSE
+	nsCertType = server
+	nsComment = "OpenSSL Generated Server Certificte"
+	subjectKeyIdentifier = hash
+	authorityKeyIdentifier = keyid,issuer:always
+	keyUsage = critical, digitalSignature, keyEncipherment
+	extendedKeyUsage = serverAuth
+	subjectAltName = @alt_names
+	[alt_names]
+	IP.1 = 10.0.20.4
+	IP.2 = 10.0.20.10
+	IP.3 = 10.0.20.20
+	IP.4 = 10.0.50.7
+	IP.5 = 10.0.30.10
+	IP.6 = 10.0.20.30
+	IP.7 = 10.0.30.30
+	IP.8 = 10.0.20.40
+	IP.9 = 10.0.50.4
+	IP.10 = 10.0.40.20
+	DNS.1 = celerispay.com
+	
+	II) cd private/
+	   Generate private key for LDAP server certificate:
+	   -------------------------------------------------
+	    openssl genrsa -out celerispay.com.key 4096
+
+	III) Create certificate signing request:
+	     -----------------------------------
+	     openssl req -new -key celerispay.com.key -out celerispay.com.csr
+
+	cd ..
+	
+5. Create a LDAP server certificate:
+   ----------------------------------
+	openssl ca -keyfile ca.key -cert ca.cert.pem -in private/celerispay.com.csr -out private/celerispay.com.crt -extensions v3_ca -extfile server_cert_ext.cnf		
+	
+6. Verify the LDAP client certificate:
+   ------------------------------------
+	openssl verify -CAfile ca.cert.pem private/celerispay.com.crt
+		Output: private/celerispay.com.crt:OK
+		
+	openssl x509 -noout  -text -in private/celerispay.com.crt | grep -A 1 "Subject Alternative Name"
+		Output will be list of all ip-addresses we have given in the server_cert_ext.conf file
+		
+7. After signing the certificates, we copy both the certificates to the openldap directory:
+   ----------------------------------------------------------------------------------------
+	cp -v private/celerispay.com.crt private/celerispay.com.key /etc/openldap/certs/
+
+	cp -v ca.cert.pem /etc/openldap/cacerts/
+	
+8. chown -R ldap:ldap /etc/openldap/certs
+   chown -R ldap:ldap /etc/openldap.cacerts
+
+9. Create a new file cert.ldif and add the following:
+   --------------------------------------------------
+
+	dn: cn=config
+	changetype: modify
+	replace: olcTLSCACertificateFile
+	olcTLSCACertificateFile: /etc/openldap/cacerts/ca.cert.pem
+
+	ldapmodify -Y EXTERNAL  -H ldapi:/// -f cert_1.ldif
+
+10. Create a new file cert_2.ldif and add the following contents:
+    --------------------------------------------------------------
+
+	dn: cn=config
+	changetype: modify
+	replace: olcTLSCertificateFile
+	olcTLSCertificateFile: /etc/openldap/certs/celerispay.com.crt
+	-
+	dn: cn=config
+	changetype: modify
+	replace: olcTLSCertificateKeyFile
+	olcTLSCertificateKeyFile: /etc/openldap/certs/celerispay.com.key
+
+	ldapmodify -Y EXTERNAL -H ldapi:/// -f cert.ldif
+
+11. Validate the new values using slapcat:
+    --------------------------------------- 
+	slapcat -b "cn=config" | egrep "olcTLSCertificateFile|olcTLSCertificateKeyFile|olcTLSCACertificateFile"
+
+12. Edit the file /etc/sysconfig/slapd and add ldaps:/// to the line looking similar to :
+    -------------------------------------------------------------------------------------
+	SALPD_URLS="ldapi:/// ldap:/// ldaps:///"
+
+13. Edit the file /etc/openldap/ldap.conf and add the following lines:
+    ------------------------------------------------------------------
+	TLS_CACERTDIR /etc/openldap/cacerts
+	TLS_CACERT /etc/openldap/cacerts/ca.cert.pem
+	TLS_REQCERT allow
+
+14. Restart the ldap service:
+    -------------------------
+	systemctl restart slapd.service
+	
+	
+Configure LDAP client to connect with server using ssl/tls:
+============================================================
+1. Copy the generated ca.crt.pem file from ldap-server /etc/openldap/cacerts/ca.crt.pem to ldap-client /etc/openldap/cacerts/ca.crt.pem
+   ------------------------------------------------------------------------------------------------------------------------------------
+	
+2. Configure /etc/openldap/ldap.conf:
+   ----------------------------------
+   Add the following lines:
+   
+	BASE    dc=celerispay,dc=com
+	URI     ldap://10.0.50.7
+	TLS_CACERT      /etc/openldap/cacerts/ca.cert.pem
+	TLS_CACERTDIR /etc/openldap/cacerts
+
+15. Validate TLS connectivity for LDAP - From the ldap client system run the following comamnd to verify the tls connection:
+    ------------------------------------------------------------------------------------------------------------------------
+	ldapsearch -x -ZZ
+
+	###openssl x509 -in /etc/openldap/certs/ca.cert.pem -hash
