@@ -1,7 +1,8 @@
 Configure the ssl/tls for LDAP server:
 ======================================
-1. touch index.txt
-   echo 01 > serial
+1.	cd /etc/pki/CA 
+	touch index.txt
+	echo 01 > serial
    
 2. Create a privatye key for CA certificate:
    -----------------------------------------
@@ -118,15 +119,13 @@ Configure the ssl/tls for LDAP server:
 	
 Configure LDAP client to connect with server using ssl/tls:
 ============================================================
-1. Copy the generated ca.crt.pem file from ldap-server /etc/openldap/cacerts/ca.crt.pem to ldap-client /etc/openldap/cacerts/ca.crt.pem
+1. Copy the generated ca.crt.pem file from ldap-server /etc/openldap/cacerts/ca.crt.pem to ldap-client /etc/openldap/cacerts/ca.cert.pem
    ------------------------------------------------------------------------------------------------------------------------------------
 	
 2. Configure /etc/openldap/ldap.conf:
    ----------------------------------
    Add the following lines:
    
-	BASE    dc=celerispay,dc=com
-	URI     ldap://10.0.50.7
 	TLS_CACERT      /etc/openldap/cacerts/ca.cert.pem
 	TLS_CACERTDIR /etc/openldap/cacerts
 
@@ -134,4 +133,4 @@ Configure LDAP client to connect with server using ssl/tls:
     ------------------------------------------------------------------------------------------------------------------------
 	ldapsearch -x -ZZ
 
-	###openssl x509 -in /etc/openldap/certs/ca.cert.pem -hash
+	openssl x509 -in /etc/openldap/certs/ca.cert.pem -hash
