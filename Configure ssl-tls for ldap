@@ -119,7 +119,7 @@ Configure the ssl/tls for LDAP server:
 	
 Configure LDAP client to connect with server using ssl/tls:
 ============================================================
-1. Copy the generated ca.crt.pem file from ldap-server /etc/openldap/cacerts/ca.crt.pem to ldap-client /etc/openldap/cacerts/ca.cert.pem
+1. Copy the generated ca.crt.pem file from ldap-server /etc/openldap/cacerts/ca.cert.pem to ldap-client /etc/openldap/cacerts/ca.cert.pem
    ------------------------------------------------------------------------------------------------------------------------------------
 	
 2. Configure /etc/openldap/ldap.conf:

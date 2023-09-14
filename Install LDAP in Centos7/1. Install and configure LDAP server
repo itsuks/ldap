@@ -37,7 +37,7 @@ Install and Configure LDAP Server:
         dn: olcDatabase={2}hdb,cn=config
 	changeType: modify
 	add: olcRootPW
-	olcRootPW: {SSHA}xxxxxxxxxxxxxxxxxxxxxxxxxx   →  Copy the generated has password for admin.
+	olcRootPW: {SSHA}xxxxxxxxxxxxxxxxxxxxxxxxxx   →  Copy the generated hash password for admin.
 	
      Execute the following command to add:
         ldapmodify -Y EXTERNAL -H ldapi:/// -f updaterootpassword.ldif
