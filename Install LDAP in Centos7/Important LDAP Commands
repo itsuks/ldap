@@ -12,4 +12,4 @@ Important Ldap Commands:
    ldapwhoami -x -w "password" -D uid=xyz,cn=superusers,ou=users,dc=celerispay,dc=com -ZZ -H ldapi:///
         If details are provided as output, password is correct.
         
-  
+  ldapwhoami -x -D uid=utkarsh,ou=users,dc=celerispay,dc=com -ZZ -H ldapi:/// -w utkarsh@ldap
