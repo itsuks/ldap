@@ -13,3 +13,6 @@ Important Ldap Commands:
         If details are provided as output, password is correct.
         
   ldapwhoami -x -D uid=utkarsh,ou=users,dc=celerispay,dc=com -ZZ -H ldapi:/// -w utkarsh@ldap
+  
+4. To filter logs in database cn=accesslog while using ldapsearch:
+   ldapsearch -x -D cn=admin,dc=celerispay,dc=com -w admin@ldap -b "cn=accesslog" "reqStart>=20230922062000Z"
