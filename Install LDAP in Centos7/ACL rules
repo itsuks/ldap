@@ -1,0 +1,5 @@
+ACLs are:
+
+olcAccess: {0}to attrs=userPassword,shadowLastChange by dn="cn=admin,dc=celerispay,dc=com" write by anonymous auth by self write by * none
+olcAccess: {1}to dn.base="" by * read
+olcAccess: {2}to * by dn="cn=admin,dc=celerispay,dc=com" write by * read
