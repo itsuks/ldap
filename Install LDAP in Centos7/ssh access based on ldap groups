@@ -1,0 +1,17 @@
+Configure SSH authentication using individual server-group:
+============================================================
+
+1. Open the /etc/pam.d/sshd file and add the following line at the top:
+   ---------------------------------------------------------------------
+   account  required     pam_access.so
+   
+2. Open the following file etc/security/access.conf:
+   --------------------------------------------------
+   vim etc/security/access.conf
+   
+   Add the following line at the bottom:
+   --------------------------------------
+   +:root:ALL                  #→ For root access from all IPs
+   +:ngneteng:ALL              #→ For ngneteng access from all IPs
+   +:mygroup:ALL               #→ For user's access that belongs to the group 'mygroup'
+   -:ALL:ALL                   #→ Deny all other user access
